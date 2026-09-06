@@ -1,0 +1,102 @@
+{
+  "words": [
+    {
+      "type": "attack",
+      "text": "kill"
+    },
+    {
+      "type": "movement",
+      "text": "tp"
+    },
+    {
+      "type": "entity",
+      "text": "summon"
+    }
+  ],
+
+  "survivalShortSentences": [
+    {
+      "type": "attack",
+      "text": "kill @e[type=zombie]"
+    },
+    {
+      "type": "movement",
+      "text": "tp @p ~ ~ ~"
+    },
+    {
+      "type": "entity",
+      "text": "summon minecraft:zombie ~ ~ ~"
+    }
+  ],
+
+  "creativeShortSentences": [
+    {
+      "type": "attack",
+      "text": "kill @e[type=zombie]"
+    },
+    {
+      "type": "movement",
+      "text": "tp @p ~ ~ ~"
+    },
+    {
+      "type": "entity",
+      "text": "summon minecraft:zombie ~ ~ ~"
+    }
+  ],
+
+  "programs": [
+    {
+      "name": "flash",
+      "description": "점멸 만들기",
+      "code": [
+        "scoreboard objectives add flashTimer dummy",
+        "execute as @a unless score @s flashTimer = @s flashTimer run scoreboard players set @s flashTimer 5",
+        "execute as @a if items entity @s weapon.offhand minecraft:yellow_dye at @s run particle flame ~ ~1 ~ 0.2 1 0.2 0 20 normal",
+        "execute as @a if items entity @s weapon.offhand minecraft:yellow_dye at @s run tp @s ^ ^1 ^3",
+        "execute as @a if items entity @s weapon.offhand minecraft:yellow_dye at @s run playsound minecraft:entity.breeze.jump ambient @s ~ ~ ~ 1 0.1 1",
+        "execute as @a if items entity @s weapon.offhand minecraft:yellow_dye at @s run scoreboard players set @s flashTimer 100",
+        "execute as @a if items entity @s weapon.offhand minecraft:yellow_dye at @s run item replace entity @s weapon.offhand with air",
+        "scoreboard players remove @a[scores={flashTimer=0..}] flashTimer 1",
+        "give @a[scores={flashTimer=0}] minecraft:yellow_dye"
+      ]
+    },
+    {
+      "name": "fireball",
+      "description": "파이어볼",
+      "code": [
+        "scoreboard objectives add fireballTimer dummy",
+        "scoreboard objectives add BuPos dummy",
+        "scoreboard objectives add MotionX1 dummy",
+        "scoreboard objectives add MotionX2 dummy",
+        "scoreboard objectives add MotionY1 dummy",
+        "scoreboard objectives add MotionY2 dummy",
+        "scoreboard objectives add MotionZ1 dummy",
+        "scoreboard objectives add MotionZ2 dummy",
+        "execute as @a unless score @s fireballTimer = @s fireballTimer run scoreboard players set @s fireballTimer",
+        "execute as @a if items entity @s weapon.offhand minecraft:fire_charge run tag @s add fireball",
+        "execute as @a[tag=fireball] run item replace entity @s weapon.offhand with air",
+        "execute as @e[tag=fireball] at @s anchored eyes run summon minecraft:area_effect_cloud ^ ^ ^ {Tags:[\"BuPos\"]}",
+        "execute as @e[tag=fireball] at @s anchored eyes run summon minecraft:fireball ^ ^ ^ {Tags:[\"Bu\"]}",
+        "execute as @e[tag=BuPos] store result score @s MotionX1 run data get entity @s Pos[0] 100000",
+        "execute as @e[tag=BuPos] store result score @s MotionY1 run data get entity @s Pos[1] 100000",
+        "execute as @e[tag=BuPos] store result score @s MotionZ1 run data get entity @s Pos[2] 100000",
+        "execute as @e[tag=fireball] at @s anchored eyes run tp @e[tag=BuPos,limit=1,sort=nearest] ^ ^ ^1",
+        "execute as @e[tag=BuPos] store result score @s MotionX2 run data get entity @s Pos[0] 100000",
+        "execute as @e[tag=BuPos] store result score @s MotionY2 run data get entity @s Pos[1] 100000",
+        "execute as @e[tag=BuPos] store result score @s MotionZ2 run data get entity @s Pos[2] 100000",
+        "execute as @e[tag=BuPos] run scoreboard players operation @s MotionX2 -= @s MotionX1",
+        "execute as @e[tag=BuPos] run scoreboard players operation @s MotionY2 -= @s MotionY1",
+        "execute as @e[tag=BuPos] run scoreboard players operation @s MotionZ2 -= @s MotionZ1",
+        "execute at @e[tag=fireball] as @e[tag=Bu,limit=1,sort=nearest] store result entity @s Motion[0] double 0.00001 run scoreboard players get @e[tag=BuPos,limit=1,sort=nearest] MotionX2",
+        "execute at @e[tag=fireball] as @e[tag=Bu,limit=1,sort=nearest] store result entity @s Motion[1] double 0.00001 run scoreboard players get @e[tag=BuPos,limit=1,sort=nearest] MotionY2",
+        "execute at @e[tag=fireball] as @e[tag=Bu,limit=1,sort=nearest] store result entity @s Motion[2] double 0.00001 run scoreboard players get @e[tag=BuPos,limit=1,sort=nearest] MotionZ2",
+        "scoreboard players set @a[tag=fireball] fireballTimer 100",
+        "tag @e[tag=fireball] remove fireball",
+        "tag @e[tag=Bu] remove Bu",
+        "kill @e[type=minecraft:area_effect_cloud,tag=BuPos]",
+        "scoreboard players remove @a[scores={fireballTimer=0..}] fireballTimer 1",
+        "give @a[scores={fireballTimer=0}] minecraft:fire_charge"
+      ]
+    }
+  ]
+}
