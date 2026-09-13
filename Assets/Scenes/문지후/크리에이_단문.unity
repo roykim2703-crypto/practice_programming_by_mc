@@ -674,6 +674,7 @@ GameObject:
   - component: {fileID: 960601528}
   - component: {fileID: 960601530}
   - component: {fileID: 960601529}
+  - component: {fileID: 960601531}
   m_Layer: 5
   m_Name: current sentence
   m_TagString: Untagged
@@ -697,8 +698,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: 802, y: 0}
+  m_SizeDelta: {x: 2322.9, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &960601529
 MonoBehaviour:
@@ -720,10 +721,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: execute as @a if items entity @s weapon.offhand minecraft:yellow_dye at @s run playsound minecraft:entity.breeze.jump ambient @s ~ ~ ~ 1 0.1 1
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: ede7e58d0577d704184b4088da4e411d, type: 2}
+  m_sharedMaterial: {fileID: -719722440997828790, guid: ede7e58d0577d704184b4088da4e411d, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -764,7 +765,7 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_TextWrappingMode: 1
+  m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
@@ -786,7 +787,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: -7.079651, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -800,6 +801,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 960601527}
   m_CullTransparentMesh: 1
+--- !u!114 &960601531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 960601527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66dd11a7f99f356438439c4b9d6bd1e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: "Assembly-CSharp::\uC368\uC57C\uD558\uB294\uAE00\uC758\uCF54\uB4DC"
+  inputText: {fileID: 1117120925}
+  "\uC368\uC57C\uD560\uAE00\uC790Rect": {fileID: 0}
+  "\uC774\uB3D9\uC2DC\uC791\uAE00\uC790": 15
+  "\uAE00\uC790\uB2F9\uC774\uB3D9\uAC70\uB9AC": 20
 --- !u!1 &1083407234
 GameObject:
   m_ObjectHideFlags: 0
@@ -903,6 +920,7 @@ GameObject:
   - component: {fileID: 1117120924}
   - component: {fileID: 1117120926}
   - component: {fileID: 1117120925}
+  - component: {fileID: 1117120927}
   m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
@@ -1015,7 +1033,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: -2.822497, z: 0, w: -11.760422}
+  m_margin: {x: 0, y: -2.822497, z: 172.29568, w: -11.760422}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -1029,6 +1047,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1117120923}
   m_CullTransparentMesh: 1
+--- !u!114 &1117120927
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1117120923}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e63a3e26c0de0e469358fd156e57995, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: "Assembly-CSharp::\uC4F0\uACE0\uC788\uB294\uAE00"
+  inputField: {fileID: 1426523895}
+  textToWrite: {fileID: 960601531}
 --- !u!1 &1338896548
 GameObject:
   m_ObjectHideFlags: 0
