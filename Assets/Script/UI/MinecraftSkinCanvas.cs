@@ -15,15 +15,17 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
 
     [SerializeField] private TMP_FontAsset uiFont;
     [SerializeField] private Texture2D defaultSkin;
-    [SerializeField, Min(0)] private float moveSmoothTime = 0.18f;
+    [SerializeField] private Vector2 initialPosition = new Vector2(-200f, 0f);
+    [SerializeField, Range(0.25f, 3f)] private float avatarScale = 1f;
+    [SerializeField] private bool showControls;
     [SerializeField, Min(0)] private float turnSpeedDegrees = 240f;
-    [SerializeField] private float initialYaw = 25f;
+    [SerializeField] private float initialYaw = -45f;
     private Texture2D skin;
     private bool ownsSkin;
     private MinecraftSkinPartGraphic[] pieces;
     private RectTransform preview;
+    private RectTransform controlsPanel;
     private Vector2 targetPosition;
-    private Vector2 positionVelocity;
     private float targetYaw;
     private float currentYaw;
     private TextMeshProUGUI status;
@@ -52,10 +54,13 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
 
     private void Update()
     {
+        if (controlsPanel != null && controlsPanel.gameObject.activeSelf != showControls)
+            controlsPanel.gameObject.SetActive(showControls);
         if (preview == null)
             return;
-        preview.anchoredPosition = Vector2.SmoothDamp(preview.anchoredPosition,
-            targetPosition, ref positionVelocity, Mathf.Max(0.0001f, moveSmoothTime));
+        if (!Mathf.Approximately(preview.localScale.x, avatarScale))
+            ApplyAvatarScale();
+        targetPosition = preview.anchoredPosition;
         float nextYaw = NormalizeYaw(Mathf.MoveTowardsAngle(currentYaw, targetYaw,
             turnSpeedDegrees * Time.deltaTime));
         if (!Mathf.Approximately(nextYaw, currentYaw))
@@ -65,15 +70,43 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
         }
     }
 
-    // Coordinates are relative to the center of the skin panel, in Canvas units.
-    public void MoveTo(Vector2 panelPosition) => targetPosition = panelPosition;
-
-    public void SetPositionImmediate(Vector2 panelPosition)
+    // Coordinates are relative to the center of the Canvas, in Canvas units.
+    public void MoveTo(Vector2 canvasPosition)
     {
-        targetPosition = panelPosition;
-        positionVelocity = Vector2.zero;
+        targetPosition = canvasPosition;
         if (preview != null)
-            preview.anchoredPosition = panelPosition;
+            preview.anchoredPosition = canvasPosition;
+        else
+            initialPosition = canvasPosition;
+    }
+
+    public void MoveBy(Vector2 offset) => MoveTo(CurrentPosition + offset);
+
+    public void SetPositionImmediate(Vector2 canvasPosition) => MoveTo(canvasPosition);
+
+    public void SetControlsVisible(bool visible)
+    {
+        showControls = visible;
+        if (controlsPanel != null)
+            controlsPanel.gameObject.SetActive(visible);
+    }
+
+    public bool ControlsVisible => showControls;
+    public Vector2 CurrentPosition => preview != null ? preview.anchoredPosition : initialPosition;
+
+    public float AvatarScale => avatarScale;
+
+    public void SetAvatarScale(float scale)
+    {
+        avatarScale = Mathf.Clamp(scale, 0.25f, 3f);
+        ApplyAvatarScale();
+    }
+
+    private void ApplyAvatarScale()
+    {
+        avatarScale = Mathf.Clamp(avatarScale, 0.25f, 3f);
+        if (preview != null)
+            preview.localScale = Vector3.one * avatarScale;
     }
 
     // 0 faces forward, 180 shows the back, and the angle wraps around 360 degrees.
@@ -93,11 +126,6 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
     public Vector2 TargetPosition => targetPosition;
     public float TargetYaw => targetYaw;
     public float CurrentYaw => currentYaw;
-    public float MoveSmoothTime
-    {
-        get => moveSmoothTime;
-        set => moveSmoothTime = Mathf.Max(0f, value);
-    }
     public float TurnSpeedDegrees
     {
         get => turnSpeedDegrees;
@@ -147,16 +175,16 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
 
     private void BuildUi()
     {
-        var panel = CreateRect("Skin Preview", transform, new Vector2(180, 310),
+        controlsPanel = CreateRect("Skin Controls", transform, new Vector2(180, 102),
             new Vector2(1, 1), new Vector2(1, 1), new Vector2(-12, -12));
-        var background = panel.gameObject.AddComponent<Image>();
+        var background = controlsPanel.gameObject.AddComponent<Image>();
         background.color = new Color(0.09f, 0.12f, 0.15f, 0.93f);
         background.raycastTarget = false;
 
         TMP_FontAsset font = uiFont != null ? uiFont : GetComponentInChildren<TextMeshProUGUI>()?.font;
-        CreateLabel("마크 스킨", panel, font, 17, new Vector2(110, 28), new Vector2(-22, 130));
-        var armRect = CreateRect("Arm Width", panel, new Vector2(55, 28),
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(61, 130));
+        CreateLabel("마크 스킨", controlsPanel, font, 17, new Vector2(110, 28), new Vector2(-22, 28));
+        var armRect = CreateRect("Arm Width", controlsPanel, new Vector2(55, 28),
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(61, 28));
         var armImage = armRect.gameObject.AddComponent<Image>();
         armImage.color = new Color(0.22f, 0.29f, 0.35f);
         armButton = armRect.gameObject.AddComponent<Button>();
@@ -164,8 +192,9 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
         armButton.onClick.AddListener(ToggleArmWidth);
         armMode = CreateLabel("팔 4px", armRect, font, 10, new Vector2(55, 28), Vector2.zero);
 
-        preview = CreateRect("Turned Skin", panel, new Vector2(120, 200),
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -2));
+        preview = CreateRect("Avatar Skin", transform, new Vector2(120, 200),
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), initialPosition);
+        ApplyAvatarScale();
         pieces = new MinecraftSkinPartGraphic[12];
         pieces[0] = CreatePiece("Head", preview, 8, 8, 0, 12);
         pieces[1] = CreatePiece("Body", preview, 8, 12, 0, 2);
@@ -183,8 +212,8 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
         foreach (int index in new[] { 4, 10, 2, 8, 5, 11, 1, 7, 3, 9, 0, 6 })
             pieces[index].transform.SetAsLastSibling();
 
-        var buttonRect = CreateRect("Upload Skin", panel, new Vector2(150, 34),
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -117));
+        var buttonRect = CreateRect("Upload Skin", controlsPanel, new Vector2(150, 34),
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -5));
         var buttonImage = buttonRect.gameObject.AddComponent<Image>();
         buttonImage.color = new Color(0.25f, 0.54f, 0.31f);
         var button = buttonRect.gameObject.AddComponent<Button>();
@@ -192,12 +221,13 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
         button.onClick.AddListener(ChooseSkin);
         CreateLabel("스킨 PNG 선택", buttonRect, font, 14, new Vector2(150, 34), Vector2.zero);
 
-        status = CreateLabel("64×64 또는 64×32 PNG", panel, font, 10,
-            new Vector2(164, 15), new Vector2(0, -145));
+        status = CreateLabel("64×64 또는 64×32 PNG", controlsPanel, font, 10,
+            new Vector2(164, 15), new Vector2(0, -40));
         status.overflowMode = TextOverflowModes.Ellipsis;
+        controlsPanel.gameObject.SetActive(showControls);
     }
 
-    private void ChooseSkin()
+    public void ChooseSkin()
     {
         status.text = "PNG 선택 중";
         string path = OpenSkinFile();
