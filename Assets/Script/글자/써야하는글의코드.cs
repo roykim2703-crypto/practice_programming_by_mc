@@ -13,10 +13,11 @@ public class 써야하는글의코드 : MonoBehaviour
     [SerializeField] int 이동시작글자 = 10;
     [SerializeField] float 글자당이동거리 = 18f;
 
+    public int 오타수 = 0;
+
     Vector2 처음위치;
 
     TextMeshProUGUI 써야할글자;
-
     void Awake()
     {
         써야할글자 = GetComponent<TextMeshProUGUI>();
@@ -28,6 +29,7 @@ public class 써야하는글의코드 : MonoBehaviour
     // 글자를 쓸 때마다 호출
     public void Refresh()
     {
+        오타수 = 0;
         써야할글자.ForceMeshUpdate();
 
         string 입력글 = inputText.text;
@@ -49,8 +51,13 @@ public class 써야하는글의코드 : MonoBehaviour
         {
             if (입력글[i] == 정답글[i])
                 글자색바꾸기(i, Color.white);
+            //오타 났을때
             else
+            {
                 글자색바꾸기(i, Color.red);
+                오타수++;
+            }
+                
         }
 
         // 현재 입력한 마지막 글자는 노랑
@@ -70,7 +77,7 @@ public class 써야하는글의코드 : MonoBehaviour
 
         위치갱신();
     }
-
+    
     private void 글자색바꾸기(int index, Color32 color)
     {
         TMP_CharacterInfo charInfo =
