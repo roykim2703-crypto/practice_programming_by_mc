@@ -29,7 +29,7 @@ public class 써야하는글의코드 : MonoBehaviour
     // 글자를 쓸 때마다 호출
     public void Refresh()
     {
-        오타수 = 0;
+        오타수 = -1;
         써야할글자.ForceMeshUpdate();
 
         string 입력글 = inputText.text;
