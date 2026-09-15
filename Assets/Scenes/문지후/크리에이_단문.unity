@@ -443,6 +443,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MinecraftSkinCanvas
   uiFont: {fileID: 11400000, guid: dcf259b840d0c404a9204f70922c9332, type: 2}
+  defaultSkin: {fileID: 2800000, guid: d534d28f15b7260488c8e78a4f2b9437, type: 3}
   moveSmoothTime: 0.18
   turnSpeedDegrees: 240
   initialYaw: 25

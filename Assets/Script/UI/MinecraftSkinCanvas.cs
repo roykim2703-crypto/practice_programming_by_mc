@@ -9,12 +9,17 @@ using UnityEngine.UI;
 public sealed class MinecraftSkinCanvas : MonoBehaviour
 {
     private const int PixelScale = 6;
+    private const float HeadSideScale = 1f;
+    private const float LimbSideScale = 0.95f;
+    private const float BodySideScale = 1.05f;
 
     [SerializeField] private TMP_FontAsset uiFont;
+    [SerializeField] private Texture2D defaultSkin;
     [SerializeField, Min(0)] private float moveSmoothTime = 0.18f;
     [SerializeField, Min(0)] private float turnSpeedDegrees = 240f;
     [SerializeField] private float initialYaw = 25f;
     private Texture2D skin;
+    private bool ownsSkin;
     private MinecraftSkinPartGraphic[] pieces;
     private RectTransform preview;
     private Vector2 targetPosition;
@@ -30,8 +35,19 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
     {
         BuildUi();
         targetPosition = preview.anchoredPosition;
-        currentYaw = targetYaw = initialYaw;
+        currentYaw = targetYaw = NormalizeYaw(initialYaw);
         ApplyYaw();
+        if (defaultSkin != null && defaultSkin.width == 64 &&
+            (defaultSkin.height == 64 || defaultSkin.height == 32))
+        {
+            skin = defaultSkin;
+            ShowSkin();
+            status.text = "기본 스킨: 스티브";
+        }
+        else
+        {
+            Debug.LogWarning("MinecraftSkinCanvas needs a 64x64 or 64x32 default skin texture.", this);
+        }
     }
 
     private void Update()
@@ -40,8 +56,8 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
             return;
         preview.anchoredPosition = Vector2.SmoothDamp(preview.anchoredPosition,
             targetPosition, ref positionVelocity, Mathf.Max(0.0001f, moveSmoothTime));
-        float nextYaw = Mathf.MoveTowardsAngle(currentYaw, targetYaw,
-            turnSpeedDegrees * Time.deltaTime);
+        float nextYaw = NormalizeYaw(Mathf.MoveTowardsAngle(currentYaw, targetYaw,
+            turnSpeedDegrees * Time.deltaTime));
         if (!Mathf.Approximately(nextYaw, currentYaw))
         {
             currentYaw = nextYaw;
@@ -60,14 +76,18 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
             preview.anchoredPosition = panelPosition;
     }
 
-    // 0 faces forward; positive angles turn toward the character's right.
-    // The Canvas illustration supports the front-facing range of -75 to 75 degrees.
-    public void FaceYaw(float degrees) => targetYaw = Mathf.Clamp(degrees, -75f, 75f);
+    // 0 faces forward, 180 shows the back, and the angle wraps around 360 degrees.
+    public void FaceYaw(float degrees) => targetYaw = NormalizeYaw(degrees);
 
     public void SetYawImmediate(float degrees)
     {
-        currentYaw = targetYaw = Mathf.Clamp(degrees, -75f, 75f);
+        currentYaw = targetYaw = NormalizeYaw(degrees);
         ApplyYaw();
+    }
+
+    private static float NormalizeYaw(float degrees)
+    {
+        return Mathf.Repeat(degrees + 180f, 360f) - 180f;
     }
 
     public Vector2 TargetPosition => targetPosition;
@@ -89,6 +109,9 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
         if (pieces == null)
             return;
         float horizontalScale = Mathf.Cos(currentYaw * Mathf.Deg2Rad);
+        // A small offset toward the visible side keeps the thicker head from
+        // protruding too far ahead of the torso while turning.
+        SetPieceX(0, 6, 0.15f * PixelScale * Mathf.Sin(currentYaw * Mathf.Deg2Rad));
         float armCenter = 4f + (skin != null && skin.height == 64 && slimArms ? 1.5f : 2f);
         SetPieceX(2, 8, -armCenter * PixelScale * horizontalScale);
         SetPieceX(3, 9, armCenter * PixelScale * horizontalScale);
@@ -118,7 +141,7 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (skin != null)
+        if (ownsSkin && skin != null)
             Destroy(skin);
     }
 
@@ -197,9 +220,10 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
 
             loaded.filterMode = FilterMode.Point;
             loaded.wrapMode = TextureWrapMode.Clamp;
-            if (skin != null)
+            if (ownsSkin && skin != null)
                 Destroy(skin);
             skin = loaded;
+            ownsSkin = true;
             if (skin.height == 32)
             {
                 slimArms = false;
@@ -220,28 +244,25 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
     {
         bool modern = skin.height == 64;
         int armWidth = modern && slimArms ? 3 : 4;
-        SetPiece(0, Face(8, 8, 8, 8), Face(16, 8, 8, 8), Face(8, 0, 8, 8));
-        SetPiece(1, Face(20, 20, 8, 12), Face(28, 20, 4, 12), Face(20, 16, 8, 4));
-        SetPiece(2, Face(44, 20, armWidth, 12), Face(44 + armWidth, 20, 4, 12),
-            Face(44, 16, armWidth, 4));
+        SetPiece(0, Face(8, 8, 8, 8), Face(16, 8, 8, 8));
+        SetPiece(1, Face(20, 20, 8, 12), Face(28, 20, 4, 12));
+        SetPiece(2, Face(44, 20, armWidth, 12), Face(44 + armWidth, 20, 4, 12));
         SetPiece(3, Face(modern ? 36 : 44, modern ? 52 : 20, armWidth, 12),
-            Face(modern ? 36 + armWidth : 40, modern ? 52 : 20, 4, 12),
-            Face(modern ? 36 : 44, modern ? 48 : 16, armWidth, 4), !modern);
-        SetPiece(4, Face(4, 20, 4, 12), Face(8, 20, 4, 12), Face(4, 16, 4, 4));
+            Face(modern ? 36 + armWidth : 40, modern ? 52 : 20, 4, 12), !modern);
+        SetPiece(4, Face(4, 20, 4, 12), Face(8, 20, 4, 12));
         SetPiece(5, Face(modern ? 20 : 4, modern ? 52 : 20, 4, 12),
-            Face(modern ? 24 : 0, modern ? 52 : 20, 4, 12),
-            Face(modern ? 20 : 4, modern ? 48 : 16, 4, 4), !modern);
-        SetPiece(6, Face(40, 8, 8, 8), Face(48, 8, 8, 8), Face(40, 0, 8, 8));
+            Face(modern ? 24 : 0, modern ? 52 : 20, 4, 12), !modern);
+        SetPiece(6, Face(40, 8, 8, 8), Face(48, 8, 8, 8));
         SetPiece(7, Face(20, 36, 8, 12), Face(28, 36, 4, 12),
-            Face(20, 32, 8, 4), false, modern);
+            false, modern);
         SetPiece(8, Face(44, 36, armWidth, 12), Face(44 + armWidth, 36, 4, 12),
-            Face(44, 32, armWidth, 4), false, modern);
+            false, modern);
         SetPiece(9, Face(52, 52, armWidth, 12), Face(52 + armWidth, 52, 4, 12),
-            Face(52, 48, armWidth, 4), false, modern);
+            false, modern);
         SetPiece(10, Face(4, 36, 4, 12), Face(8, 36, 4, 12),
-            Face(4, 32, 4, 4), false, modern);
+            false, modern);
         SetPiece(11, Face(4, 52, 4, 12), Face(8, 52, 4, 12),
-            Face(4, 48, 4, 4), false, modern);
+            false, modern);
         ApplyYaw();
     }
 
@@ -250,14 +271,16 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
         return new RectInt(x, y, width, height);
     }
 
-    private void SetPiece(int index, RectInt front, RectInt side, RectInt top,
+    private void SetPiece(int index, RectInt front, RectInt side,
         bool mirror = false, bool visible = true)
     {
         MinecraftSkinPartGraphic graphic = pieces[index];
         graphic.gameObject.SetActive(visible);
         if (!visible)
             return;
-        graphic.Configure(skin, front, side, top, PixelScale, mirror);
+        float sideScale = index == 0 || index == 6 ? HeadSideScale :
+            index == 1 || index == 7 ? BodySideScale : LimbSideScale;
+        graphic.Configure(skin, front, side, PixelScale, mirror, sideScale);
     }
 
     private void ToggleArmWidth()

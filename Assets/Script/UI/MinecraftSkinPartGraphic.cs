@@ -7,11 +7,12 @@ public sealed class MinecraftSkinPartGraphic : RawImage
 {
     private Texture2D skin;
     private RectInt front;
+    private RectInt back;
     private RectInt rightSide;
     private RectInt leftSide;
-    private RectInt top;
     private bool mirror;
     private int pixelScale;
+    private float sideProjectionScale;
     private float yaw;
 
     public void SetYaw(float degrees)
@@ -23,20 +24,22 @@ public sealed class MinecraftSkinPartGraphic : RawImage
     }
 
     public void Configure(Texture2D texture, RectInt frontFace, RectInt sideFace,
-        RectInt topFace, int scale, bool mirrorFront)
+        int scale, bool mirrorFront, float sideScale)
     {
         skin = texture;
         this.texture = texture;
         front = frontFace;
         rightSide = sideFace;
-        leftSide = new RectInt(frontFace.x - sideFace.width, frontFace.y,
-            sideFace.width, sideFace.height);
-        top = topFace;
+        leftSide = new RectInt(mirrorFront ? frontFace.x + frontFace.width :
+            frontFace.x - sideFace.width, frontFace.y, sideFace.width, sideFace.height);
+        back = new RectInt(mirrorFront ? frontFace.x + frontFace.width + sideFace.width :
+            sideFace.x + sideFace.width, frontFace.y, frontFace.width, frontFace.height);
         pixelScale = scale;
         mirror = mirrorFront;
+        sideProjectionScale = sideScale;
 
-        rectTransform.sizeDelta = new Vector2((front.width + sideFace.width) * scale,
-            (front.height + topFace.height) * scale);
+        rectTransform.sizeDelta = new Vector2((front.width + sideFace.width * sideScale) * scale,
+            front.height * scale);
         SetVerticesDirty();
         SetMaterialDirty();
     }
@@ -48,36 +51,39 @@ public sealed class MinecraftSkinPartGraphic : RawImage
             return;
 
         float radians = yaw * Mathf.Deg2Rad;
-        float width = front.width * pixelScale * Mathf.Cos(radians);
+        float cosine = Mathf.Cos(radians);
+        float sine = Mathf.Sin(radians);
+        float width = front.width * pixelScale;
         float height = front.height * pixelScale;
-        float sideWidth = rightSide.width * pixelScale * Mathf.Abs(Mathf.Sin(radians)) * 0.72f;
-        float topRise = top.height * pixelScale * Mathf.Abs(Mathf.Sin(radians)) * 0.22f;
-        float left = -(width + sideWidth) * 0.5f;
-        float right = left + width;
+        float halfSide = rightSide.width * pixelScale * sideProjectionScale * 0.5f;
+        float frontLeft = -width * 0.5f * cosine - halfSide * sine;
+        float frontRight = width * 0.5f * cosine - halfSide * sine;
+        float backLeft = -width * 0.5f * cosine + halfSide * sine;
+        float backRight = width * 0.5f * cosine + halfSide * sine;
         float bottom = -height * 0.5f;
         float upper = bottom + height;
-        bool turnsRight = yaw >= 0f;
-        if (sideWidth > 0.001f)
+        if (Mathf.Abs(sine) > 0.001f)
         {
-            if (turnsRight)
+            if (sine > 0f)
                 AddFace(vertices, rightSide, new Color32(175, 175, 175, 255), false,
-                    new Vector2(right, bottom), new Vector2(right, upper),
-                    new Vector2(right + sideWidth, upper + topRise),
-                    new Vector2(right + sideWidth, bottom + topRise));
+                    new Vector2(frontRight, bottom), new Vector2(frontRight, upper),
+                    new Vector2(backRight, upper), new Vector2(backRight, bottom));
             else
                 AddFace(vertices, leftSide, new Color32(175, 175, 175, 255), false,
-                    new Vector2(left - sideWidth, bottom + topRise),
-                    new Vector2(left - sideWidth, upper + topRise),
-                    new Vector2(left, upper), new Vector2(left, bottom));
-            AddFace(vertices, top, new Color32(225, 225, 225, 255), false,
-                turnsRight ? new Vector2(left, upper) : new Vector2(left - sideWidth, upper + topRise),
-                turnsRight ? new Vector2(left + sideWidth, upper + topRise) : new Vector2(left, upper),
-                turnsRight ? new Vector2(right + sideWidth, upper + topRise) : new Vector2(right, upper),
-                turnsRight ? new Vector2(right, upper) : new Vector2(right - sideWidth, upper + topRise));
+                    new Vector2(backLeft, bottom), new Vector2(backLeft, upper),
+                    new Vector2(frontLeft, upper), new Vector2(frontLeft, bottom));
         }
-        AddFace(vertices, front, new Color32(255, 255, 255, 255), mirror,
-            new Vector2(left, bottom), new Vector2(left, upper),
-            new Vector2(right, upper), new Vector2(right, bottom));
+        if (Mathf.Abs(cosine) > 0.001f)
+        {
+            if (cosine > 0f)
+                AddFace(vertices, front, new Color32(255, 255, 255, 255), mirror,
+                    new Vector2(frontLeft, bottom), new Vector2(frontLeft, upper),
+                    new Vector2(frontRight, upper), new Vector2(frontRight, bottom));
+            else
+                AddFace(vertices, back, new Color32(235, 235, 235, 255), mirror,
+                    new Vector2(backRight, bottom), new Vector2(backRight, upper),
+                    new Vector2(backLeft, upper), new Vector2(backLeft, bottom));
+        }
     }
 
     private void AddFace(VertexHelper vertices, RectInt source, Color32 shade, bool flip,
