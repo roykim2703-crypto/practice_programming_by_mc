@@ -11,7 +11,6 @@ public class 써야하는글의코드 : MonoBehaviour
     [SerializeField] RectTransform 써야할글자Rect;
 
     [SerializeField] int 이동시작글자 = 10;
-    [SerializeField] float 글자당이동거리 = 18f;
 
     public int 오타수 = 0;
 
@@ -100,11 +99,21 @@ public class 써야하는글의코드 : MonoBehaviour
 
     public void 위치갱신()
     {
-        int len = inputText.text.Length;
+        TMP_TextInfo 글자정보 = 써야할글자.textInfo;
+        int 끝글자 = Mathf.Min(inputText.text.Length, 글자정보.characterCount);
+        int 시작글자 = Mathf.Clamp(이동시작글자, 0, 글자정보.characterCount);
 
-        int 이동글자수 = Mathf.Max(0, len - 이동시작글자);
+        if (끝글자 <= 시작글자)
+        {
+            써야할글자Rect.anchoredPosition = 처음위치;
+            return;
+        }
 
-        float 이동거리 = 이동글자수 * 글자당이동거리;
+        float 시작위치 = 시작글자 == 0
+            ? 글자정보.characterInfo[0].origin
+            : 글자정보.characterInfo[시작글자 - 1].xAdvance;
+        float 끝위치 = 글자정보.characterInfo[끝글자 - 1].xAdvance;
+        float 이동거리 = Mathf.Max(0f, 끝위치 - 시작위치);
 
         써야할글자Rect.anchoredPosition =
             처음위치 + Vector2.left * 이동거리;
