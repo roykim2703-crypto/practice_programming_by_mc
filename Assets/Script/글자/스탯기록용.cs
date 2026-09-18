@@ -81,7 +81,7 @@ public class 스탯기록용 : MonoBehaviour
         }
         try
         {
-            오타율.text = Mathf.Floor(accuracy*100)/100+"%";
+            오타율.text = Mathf.Floor(accuracy*10)/10+"%";
         }
         catch (NullReferenceException)
         {
