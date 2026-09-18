@@ -71,7 +71,7 @@ public class 스탯기록용 : MonoBehaviour
         //Debug.Log("타자수 : " + taja);
         try
         {
-            타자수보여주는거.text = "taja : " + taja;
+            타자수보여주는거.text = ""+taja;
         }
         catch (NullReferenceException)
         {

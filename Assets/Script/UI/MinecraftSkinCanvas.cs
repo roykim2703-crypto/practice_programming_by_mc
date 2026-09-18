@@ -1,10 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+
+[System.Serializable]
+public class BreathData
+{
+    public int speed;
+    public float amplitude;
+}
 
 public sealed class MinecraftSkinCanvas : MonoBehaviour
 {
@@ -20,6 +28,12 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
     [SerializeField] private bool showControls;
     [SerializeField, Min(0)] private float turnSpeedDegrees = 240f;
     [SerializeField] private float initialYaw = -45f;
+
+    [SerializeField] private bool[] breathUpdown = new bool[12];
+
+
+    [SerializeField] private BreathData[] breathOffset = new BreathData[12];
+
     private Texture2D skin;
     private bool ownsSkin;
     private MinecraftSkinPartGraphic[] pieces;
@@ -211,6 +225,19 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
         // Far limbs sit behind the body; each outer layer stays over its own base.
         foreach (int index in new[] { 4, 10, 2, 8, 5, 11, 1, 7, 3, 9, 0, 6 })
             pieces[index].transform.SetAsLastSibling();
+        for (int i = 0; i < pieces.Length; i++)
+            if (breathUpdown[i])
+            {
+                pieces[i].gameObject.AddComponent<BreathingMotion>();
+                var breath = pieces[i].gameObject.GetComponent<BreathingMotion>();
+                breath.speed = breathOffset[i].speed;
+                breath.amplitude = breathOffset[i].amplitude;
+            } 
+            
+        
+            
+        
+        
 
         var buttonRect = CreateRect("Upload Skin", controlsPanel, new Vector2(150, 34),
             new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -5));
