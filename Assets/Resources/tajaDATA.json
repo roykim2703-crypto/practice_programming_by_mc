@@ -1,45 +1,45 @@
 {
   "words": [
     {
-      "type": "attack",
+      "tags": ["attack"],
       "text": "kill"
     },
     {
-      "type": "movement",
+      "tags": ["movement", "player"],
       "text": "tp"
     },
     {
-      "type": "entity",
+      "tags": ["entity", "spawn"],
       "text": "summon"
     }
   ],
 
   "survivalShortSentences": [
     {
-      "type": "attack",
+      "tags": ["attack", "entity"],
       "text": "kill @e[type=zombie]"
     },
     {
-      "type": "movement",
+      "tags": ["movement", "player"],
       "text": "tp @p ~ ~ ~"
     },
     {
-      "type": "entity",
+      "tags": ["entity", "spawn"],
       "text": "summon minecraft:zombie ~ ~ ~"
     }
   ],
 
   "creativeShortSentences": [
     {
-      "type": "attack",
+      "tags": ["attack", "entity"],
       "text": "kill @e[type=zombie]"
     },
     {
-      "type": "movement",
+      "tags": ["movement", "player"],
       "text": "tp @p ~ ~ ~"
     },
     {
-      "type": "entity",
+      "tags": ["entity", "spawn"],
       "text": "summon minecraft:zombie ~ ~ ~"
     }
   ],

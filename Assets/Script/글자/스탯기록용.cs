@@ -9,6 +9,7 @@ public class 스탯기록용 : MonoBehaviour
 
     [SerializeField] TextMeshProUGUI 타자수보여주는거;
     [SerializeField] TextMeshProUGUI 오타율;
+    [SerializeField] TextMeshProUGUI 경과시간보여주는텍스트오브젝트;
     [SerializeField] public 써야하는글의코드 오타수코드;
 
     private bool isStart = false;
@@ -16,7 +17,7 @@ public class 스탯기록용 : MonoBehaviour
 
     //남은 시간 : 
     private float time = 0;
-    public float 남은시간 => time;
+    public float 경과시간 => time;
 
     private int sec = 0;
     public int 초 => sec;
@@ -27,11 +28,12 @@ public class 스탯기록용 : MonoBehaviour
     private int taja = 0;
     public int 타자수 => taja;
 
-    private int otaAll = 0;//전체 오타 수
-    public int 전체오타수 => otaAll;
+    public int 전체오타수 = 0;
 
     private float accuracy = 0;
     public float 정확도 => accuracy;
+
+    public int 완료한입력글자수 = 0;
 
 
     int intTime;
@@ -60,8 +62,10 @@ public class 스탯기록용 : MonoBehaviour
 
         try
         {
-            taja = (int)((inputText.text.Length - 오타수코드.오타수) / time * 60);
-            accuracy = 100 - (float)오타수코드.오타수 / inputText.text.Length * 100;
+            taja = (int)((완료한입력글자수+inputText.text.Length-1 - (오타수코드.오타수+전체오타수)) / time * 60);
+            accuracy = 100 - (float)(오타수코드.오타수+전체오타수) / (완료한입력글자수+inputText.text.Length-1) * 100;
+            //Debug.Log("오타수:"+오타수코드.오타수 + 전체오타수);
+            //Debug.Log(inputText.text.Length-1);
             if (accuracy < 50) taja = 0;
         }
         catch (NullReferenceException)
@@ -79,6 +83,8 @@ public class 스탯기록용 : MonoBehaviour
         {
             Debug.Log(gameObject.name + "의 \'스탯기록용\' 컴포넌트 중 \'타자 수 보여주는거\' 채우세요");
         }
+
+
         try
         {
             오타율.text = Mathf.Floor(accuracy*10)/10+"%";
@@ -87,8 +93,17 @@ public class 스탯기록용 : MonoBehaviour
         {
             Debug.Log(gameObject.name + "의 \'스탯기록용\' 컴포넌트 중 \'타자 수 보여주는거\' 채우세요");
         }
-        
-        
 
+
+        try
+        {
+            경과시간보여주는텍스트오브젝트.text = min+":"+sec;
+        }
+        catch (NullReferenceException)
+        {
+            Debug.Log(gameObject.name + "의 \'스탯기록용\' 컴포넌트 중 \'타자 수 보여주는거\' 채우세요");
+        }
+        
     }
+
 }
