@@ -8,7 +8,9 @@ public class 스탯기록용 : MonoBehaviour
     [SerializeField] TextMeshProUGUI inputText;
 
     [SerializeField] TextMeshProUGUI 타자수보여주는거;
+    [SerializeField] TextMeshProUGUI 오타율;
     [SerializeField] public 써야하는글의코드 오타수코드;
+
     private bool isStart = false;
     public bool 시작함 => isStart;
 
@@ -68,7 +70,7 @@ public class 스탯기록용 : MonoBehaviour
         }
 
 
-        //Debug.Log("타자수 : " + taja);
+        //try catch는 예외 처리하는 애임. 배워두면 좋음.
         try
         {
             타자수보여주는거.text = ""+taja;
@@ -77,7 +79,14 @@ public class 스탯기록용 : MonoBehaviour
         {
             Debug.Log(gameObject.name + "의 \'스탯기록용\' 컴포넌트 중 \'타자 수 보여주는거\' 채우세요");
         }
-
+        try
+        {
+            오타율.text = Mathf.Floor(accuracy*100)/100+"%";
+        }
+        catch (NullReferenceException)
+        {
+            Debug.Log(gameObject.name + "의 \'스탯기록용\' 컴포넌트 중 \'타자 수 보여주는거\' 채우세요");
+        }
         
         
 
