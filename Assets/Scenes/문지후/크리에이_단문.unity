@@ -869,7 +869,7 @@ MonoBehaviour:
   "\uBA87\uAC1C\uC500": 0
   "\uC785\uB825\uAE00\uC624\uBE0C\uC81D\uD2B8": {fileID: 1426523895}
   "\uC368\uC57C\uD560\uAE00\uC790Rect": {fileID: 1323076813}
-  "\uC774\uB3D9\uC2DC\uC791\uAE00\uC790": 30
+  "\uC774\uB3D9\uC2DC\uC791\uAE00\uC790": 20
   stat: {fileID: 1045417974}
   "\uBB38\uC7A5": {fileID: 0}
   "\uC624\uD0C0\uC218": 0
@@ -1095,7 +1095,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: -2.822497, z: 172.29568, w: -11.760422}
+  m_margin: {x: 0, y: -2.822497, z: 330.80365, w: -11.760422}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0

@@ -31,16 +31,40 @@
 
   "creativeShortSentences": [
     {
-      "tags": ["attack", "entity"],
+      "tags": ["attack", "zombie"],
       "text": "kill @e[type=zombie]"
     },
     {
-      "tags": ["movement", "player"],
-      "text": "tp @p ~ ~ ~"
+      "tags": ["movement", "jump"],
+      "text": "execute as @a at @s run tp @s ~ ~1 ~ ~ ~"
     },
     {
-      "tags": ["entity", "spawn"],
+      "tags": ["zombie", "summon"],
       "text": "summon minecraft:zombie ~ ~ ~"
+    },
+    {
+      "tags": ["jump", "scoreboard"],
+      "text": "scoreboard objectives add jump minecraft.custom:minecraft.jump"
+    },
+    {
+      "tags": ["summon", "creeper"],
+      "text": "execute as @s if score @s ranmob matches 16 run summon minecraft:creeper ~ ~ ~"
+    },
+    {
+      "tags": ["heart"],
+      "text": "attribute @s minecraft:max_health base set 40"
+    },
+    {
+      "tags": ["heart"],
+      "text": "effect give @e minecraft:regeneration infinite 4 true"
+    },
+    {
+      "tags": ["attack","zombie"],
+      "text": "damage @n[type=zombie] 20 minecraft:dragon_breath"
+    },
+    {
+      "tags": [],
+      "text": "gamerule advance_time true"
     }
   ],
 
