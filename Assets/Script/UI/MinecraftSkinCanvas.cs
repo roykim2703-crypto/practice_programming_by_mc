@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -28,6 +29,11 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
     [SerializeField] private bool showControls;
     [SerializeField, Min(0)] private float turnSpeedDegrees = 240f;
     [SerializeField] private float initialYaw = -45f;
+    [Header("Motion")]
+    [SerializeField, Min(0.05f)] private float attackDuration = 0.35f;
+    [SerializeField, Range(0f, 120f)] private float attackAngle = 65f;
+    [SerializeField, Min(0.05f)] private float jumpDuration = 0.5f;
+    [SerializeField, Min(0f)] private float defaultJumpHeight = 30f;
 
     [SerializeField] private bool[] breathUpdown = new bool[12];
 
@@ -46,6 +52,9 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
     private TextMeshProUGUI armMode;
     private Button armButton;
     private bool slimArms;
+    private Vector2 jumpOffset;
+    private Coroutine attackRoutine;
+    private Coroutine jumpRoutine;
 
     private void Awake()
     {
@@ -74,7 +83,6 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
             return;
         if (!Mathf.Approximately(preview.localScale.x, avatarScale))
             ApplyAvatarScale();
-        targetPosition = preview.anchoredPosition;
         float nextYaw = NormalizeYaw(Mathf.MoveTowardsAngle(currentYaw, targetYaw,
             turnSpeedDegrees * Time.deltaTime));
         if (!Mathf.Approximately(nextYaw, currentYaw))
@@ -89,7 +97,7 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
     {
         targetPosition = canvasPosition;
         if (preview != null)
-            preview.anchoredPosition = canvasPosition;
+            preview.anchoredPosition = targetPosition + jumpOffset;
         else
             initialPosition = canvasPosition;
     }
@@ -106,7 +114,73 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
     }
 
     public bool ControlsVisible => showControls;
-    public Vector2 CurrentPosition => preview != null ? preview.anchoredPosition : initialPosition;
+    public Vector2 CurrentPosition => preview != null ? targetPosition : initialPosition;
+
+    public void Attack()
+    {
+        if (pieces == null)
+            return;
+        if (attackRoutine != null)
+            StopCoroutine(attackRoutine);
+        ResetAttackPose();
+        attackRoutine = StartCoroutine(PlayAttack());
+    }
+
+    public void Jump() => Jump(defaultJumpHeight);
+
+    public void Jump(float height)
+    {
+        if (preview == null)
+            return;
+        if (jumpRoutine != null)
+            StopCoroutine(jumpRoutine);
+        jumpOffset = Vector2.zero;
+        jumpRoutine = StartCoroutine(PlayJump(Mathf.Max(0f, height)));
+    }
+
+    private IEnumerator PlayAttack()
+    {
+        float elapsed = 0f;
+        while (elapsed < attackDuration)
+        {
+            elapsed += Time.deltaTime;
+            float progress = Mathf.Clamp01(elapsed / attackDuration);
+            float angle = attackAngle * Mathf.Sin(progress * Mathf.PI);
+            SetLeftArmAngle(angle);
+            yield return null;
+        }
+        ResetAttackPose();
+        attackRoutine = null;
+    }
+
+    private IEnumerator PlayJump(float height)
+    {
+        float elapsed = 0f;
+        while (elapsed < jumpDuration)
+        {
+            elapsed += Time.deltaTime;
+            float progress = Mathf.Clamp01(elapsed / jumpDuration);
+            jumpOffset.y = Mathf.Sin(progress * Mathf.PI) * height;
+            preview.anchoredPosition = targetPosition + jumpOffset;
+            yield return null;
+        }
+        jumpOffset = Vector2.zero;
+        preview.anchoredPosition = targetPosition;
+        jumpRoutine = null;
+    }
+
+    private void SetLeftArmAngle(float angle)
+    {
+        pieces[3].rectTransform.localRotation = Quaternion.Euler(0f, 0f, angle);
+        pieces[9].rectTransform.localRotation = Quaternion.Euler(0f, 0f, angle);
+    }
+
+    private void ResetAttackPose()
+    {
+        if (pieces == null)
+            return;
+        SetLeftArmAngle(0f);
+    }
 
     public float AvatarScale => avatarScale;
 
@@ -206,8 +280,10 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
         armButton.onClick.AddListener(ToggleArmWidth);
         armMode = CreateLabel("팔 4px", armRect, font, 10, new Vector2(55, 28), Vector2.zero);
 
-        preview = CreateRect("Avatar Skin", transform, new Vector2(120, 200),
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), initialPosition);
+        preview = transform.Find("Player Avatar") as RectTransform;
+        if (preview == null)
+            preview = CreateRect("Player Avatar", transform, new Vector2(120, 200),
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), initialPosition);
         ApplyAvatarScale();
         pieces = new MinecraftSkinPartGraphic[12];
         pieces[0] = CreatePiece("Head", preview, 8, 8, 0, 12);
@@ -222,6 +298,8 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
         pieces[9] = CreatePiece("Left Sleeve", preview, 4, 12, 6, 2);
         pieces[10] = CreatePiece("Right Pants", preview, 4, 12, -2, -10);
         pieces[11] = CreatePiece("Left Pants", preview, 4, 12, 2, -10);
+        SetPivotWithoutMoving(pieces[3].rectTransform, new Vector2(0.5f, 1f));
+        SetPivotWithoutMoving(pieces[9].rectTransform, new Vector2(0.5f, 1f));
         // Far limbs sit behind the body; each outer layer stays over its own base.
         foreach (int index in new[] { 4, 10, 2, 8, 5, 11, 1, 7, 3, 9, 0, 6 })
             pieces[index].transform.SetAsLastSibling();
@@ -365,12 +443,25 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
         int width, int height,
         int x, int y)
     {
+        if (parent.Find(name) is RectTransform existing)
+        {
+            var existingGraphic = existing.GetComponent<MinecraftSkinPartGraphic>();
+            if (existingGraphic != null)
+                return existingGraphic;
+        }
         var rect = CreateRect(name, parent, new Vector2(width, height) * PixelScale,
             new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(x, y) * PixelScale);
         var graphic = rect.gameObject.AddComponent<MinecraftSkinPartGraphic>();
         graphic.raycastTarget = false;
         graphic.gameObject.SetActive(false);
         return graphic;
+    }
+
+    private static void SetPivotWithoutMoving(RectTransform rect, Vector2 pivot)
+    {
+        Vector2 difference = pivot - rect.pivot;
+        rect.anchoredPosition += Vector2.Scale(difference, rect.sizeDelta);
+        rect.pivot = pivot;
     }
 
     private static TextMeshProUGUI CreateLabel(string value, Transform parent, TMP_FontAsset font,

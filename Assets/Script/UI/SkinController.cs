@@ -43,4 +43,27 @@ public class SkinController : MonoBehaviour
             skin.FaceYaw(rotation);
         }
     }
+
+    public void Attack()
+    {
+        if (skin != null)
+            skin.Attack();
+    }
+
+    public void Jump(float n)
+    {
+        if (skin != null)
+            skin.Jump(n);
+    }
+
+    public void Jump()
+    {
+        if (skin != null)
+            skin.Jump();
+    }
+
+    // Lowercase aliases for scripts that call attack() / jump().
+    public void attack() => Attack();
+    public void jump(float n) => Jump(n);
+    public void jump() => Jump();
 }

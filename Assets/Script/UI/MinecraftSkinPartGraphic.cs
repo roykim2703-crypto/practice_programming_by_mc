@@ -60,7 +60,9 @@ public sealed class MinecraftSkinPartGraphic : RawImage
         float frontRight = width * 0.5f * cosine - halfSide * sine;
         float backLeft = -width * 0.5f * cosine + halfSide * sine;
         float backRight = width * 0.5f * cosine + halfSide * sine;
-        float bottom = -height * 0.5f;
+        // Respect the RectTransform pivot so limbs can rotate around a shoulder
+        // without their rendered pixels shifting away from the body.
+        float bottom = -height * rectTransform.pivot.y;
         float upper = bottom + height;
         if (Mathf.Abs(sine) > 0.001f)
         {
