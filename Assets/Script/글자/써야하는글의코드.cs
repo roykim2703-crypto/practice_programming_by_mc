@@ -2,6 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 using UnityEngine.UI;
 
 //사용법
@@ -18,8 +19,12 @@ public class 써야하는글의코드 : MonoBehaviour
     [SerializeField] int 이동시작글자 = 10;
     [SerializeField] 스탯기록용 stat;
     [SerializeField] 문장불러오기 문장;
+
+    [Header("이벤트 매니저에 연결해라")]
+    [SerializeField] 이벤트매니저 _이벤트매니저;
     public int 오타수 = 0;
 
+    [SerializeField] private List<string> 써야할글자타입 = new List<string>();
     Vector2 처음위치;
     
     TextMeshProUGUI 써야할글자;
@@ -29,6 +34,7 @@ public class 써야하는글의코드 : MonoBehaviour
         써야할글자Rect = GetComponent<RectTransform>();
         if (!문장) 문장 = FindAnyObjectByType<문장불러오기>();
         처음위치 = 써야할글자Rect.anchoredPosition;
+        if (!_이벤트매니저) _이벤트매니저 = FindAnyObjectByType<이벤트매니저>();
     }
 
     // 글자를 쓸 때마다 호출
@@ -84,8 +90,17 @@ public class 써야하는글의코드 : MonoBehaviour
 
         int 써야할글자길이 = 써야할글자.text.Length;
 
-        if (입력글.Length > 써야할글자길이 || (입력글.Length >= 써야할글자길이) && Keyboard.current.enterKey.isPressed)
+        bool 엔터누름 = Keyboard.current != null &&
+            (Keyboard.current.enterKey.isPressed || Keyboard.current.numpadEnterKey.isPressed);
+        if (입력글.Length > 써야할글자길이 ||
+            (입력글.Length == 써야할글자길이 && 엔터누름))
         {
+            bool 추가입력없음 = 입력글.Length == 써야할글자길이 ||
+                (입력글.Length == 써야할글자길이 + 1 && 입력글[써야할글자길이] == ' ');
+            bool 오타없는완료 = 써야할글자길이 > 0 && 오타수 == 0 &&
+                추가입력없음 && 입력글.StartsWith(정답글, System.StringComparison.Ordinal);
+            if (오타없는완료 && _이벤트매니저 != null)
+                _이벤트매니저.StartEvent(써야할글자타입);
             춘배야다음글받아오거라();    
         }
         //테스트용
@@ -164,7 +179,11 @@ public class 써야하는글의코드 : MonoBehaviour
         }
         else
         {
-            써야할글자.text=문장.랜덤문장불러오기().text;
+            SentenceItem 선택한문장 = 문장.랜덤문장불러오기();
+            써야할글자.text = 선택한문장.text;
+            써야할글자타입 = 선택한문장.tags != null
+                ? new List<string>(선택한문장.tags)
+                : new List<string>();
         }
         
         

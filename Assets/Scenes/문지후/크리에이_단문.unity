@@ -452,6 +452,10 @@ MonoBehaviour:
   showControls: 0
   turnSpeedDegrees: 240
   initialYaw: -45
+  attackDuration: 0.35
+  attackAngle: 65
+  jumpDuration: 0.5
+  defaultJumpHeight: 30
   breathUpdown: 000101010000000000000000y
   breathOffset:
   - speed: 0
@@ -873,6 +877,7 @@ MonoBehaviour:
   "\uC774\uB3D9\uC2DC\uC791\uAE00\uC790": 20
   stat: {fileID: 1045417974}
   "\uBB38\uC7A5": {fileID: 0}
+  "_\uC774\uBCA4\uD2B8\uB9E4\uB2C8\uC800": {fileID: 2101890664}
   "\uC624\uD0C0\uC218": 0
 --- !u!1 &1045417970
 GameObject:
@@ -2538,8 +2543,9 @@ GameObject:
   m_Component:
   - component: {fileID: 2101890663}
   - component: {fileID: 2101890662}
+  - component: {fileID: 2101890664}
   m_Layer: 0
-  m_Name: SkinController
+  m_Name: "\uC774\uBCA4\uD2B8 \uB9E4\uB2C8\uC800"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2576,6 +2582,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2101890664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2101890661}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30faba673e6188548b72005eb831e382, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: "Assembly-CSharp::\uC774\uBCA4\uD2B8\uB9E4\uB2C8\uC800"
 --- !u!1 &300000000000
 GameObject:
   m_ObjectHideFlags: 0
