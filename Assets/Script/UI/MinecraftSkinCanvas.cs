@@ -146,7 +146,7 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
             elapsed += Time.deltaTime;
             float progress = Mathf.Clamp01(elapsed / attackDuration);
             float angle = attackAngle * Mathf.Sin(progress * Mathf.PI);
-            SetLeftArmAngle(angle);
+            SetAttackArmAngle(angle);
             yield return null;
         }
         ResetAttackPose();
@@ -169,17 +169,17 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
         jumpRoutine = null;
     }
 
-    private void SetLeftArmAngle(float angle)
+    private void SetAttackArmAngle(float angle)
     {
-        pieces[3].rectTransform.localRotation = Quaternion.Euler(0f, 0f, angle);
-        pieces[9].rectTransform.localRotation = Quaternion.Euler(0f, 0f, angle);
+        pieces[2].rectTransform.localRotation = Quaternion.Euler(0f, 0f, angle);
+        pieces[8].rectTransform.localRotation = Quaternion.Euler(0f, 0f, angle);
     }
 
     private void ResetAttackPose()
     {
         if (pieces == null)
             return;
-        SetLeftArmAngle(0f);
+        SetAttackArmAngle(0f);
     }
 
     public float AvatarScale => avatarScale;
@@ -229,7 +229,8 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
         // protruding too far ahead of the torso while turning.
         SetPieceX(0, 6, 0.15f * PixelScale * Mathf.Sin(currentYaw * Mathf.Deg2Rad));
         float armCenter = 4f + (skin != null && skin.height == 64 && slimArms ? 1.5f : 2f);
-        SetPieceX(2, 8, -armCenter * PixelScale * horizontalScale);
+        // Keep the attacking arm slightly inside the torso silhouette as it turns.
+        SetPieceX(2, 8, -(armCenter - 0.5f) * PixelScale * horizontalScale);
         SetPieceX(3, 9, armCenter * PixelScale * horizontalScale);
         SetPieceX(4, 10, -2f * PixelScale * horizontalScale);
         SetPieceX(5, 11, 2f * PixelScale * horizontalScale);
@@ -298,8 +299,8 @@ public sealed class MinecraftSkinCanvas : MonoBehaviour
         pieces[9] = CreatePiece("Left Sleeve", preview, 4, 12, 6, 2);
         pieces[10] = CreatePiece("Right Pants", preview, 4, 12, -2, -10);
         pieces[11] = CreatePiece("Left Pants", preview, 4, 12, 2, -10);
-        SetPivotWithoutMoving(pieces[3].rectTransform, new Vector2(0.5f, 1f));
-        SetPivotWithoutMoving(pieces[9].rectTransform, new Vector2(0.5f, 1f));
+        SetPivotWithoutMoving(pieces[2].rectTransform, new Vector2(0.5f, 1f));
+        SetPivotWithoutMoving(pieces[8].rectTransform, new Vector2(0.5f, 1f));
         // Far limbs sit behind the body; each outer layer stays over its own base.
         foreach (int index in new[] { 4, 10, 2, 8, 5, 11, 1, 7, 3, 9, 0, 6 })
             pieces[index].transform.SetAsLastSibling();
