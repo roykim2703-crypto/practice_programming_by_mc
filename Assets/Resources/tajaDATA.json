@@ -39,7 +39,7 @@
       "text": "execute as @a at @s run tp @s ~ ~1 ~ ~ ~"
     },
     {
-      "tags": ["zombie", "summon"],
+      "tags": ["attack", "zombie"],
       "text": "summon minecraft:zombie ~ ~ ~"
     },
     {
